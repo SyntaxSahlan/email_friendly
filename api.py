@@ -33,11 +33,11 @@ async def calculate_demurrage_charge(request: DemurrageRequest):
     
     charge_breakdown = [
         ChargeBreakdown(
-            days=period_days,
-            rate=rate,
-            subtotal=subtotal
+            days=details['days'],
+            rate=details['rate'],
+            subtotal=details['charge']
         )
-        for period_days, rate, subtotal in breakdown
+        for details in breakdown.values()
     ]
     
     return DemurrageResponse(
