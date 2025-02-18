@@ -5,10 +5,9 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn api:app --host 0.0.0.0 --port $PORT
     plan: free
-    runtime: python3.11
+    runtime: python3.9
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.0
-    healthCheckPath: /docs
+        value: 3.9.0
+    healthCheckPath: /
     autoDeploy: true
-
