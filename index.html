@@ -111,7 +111,7 @@
             const resultDiv = document.getElementById('result');
             
             try {
-                const response = await fetch('http://localhost:8005/calculate-demurrage', {
+                const response = await fetch('/calculate-demurrage', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
