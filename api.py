@@ -1,47 +1,52 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from enum import Enum
-from typing import List
-from demurrage_calculator import ContainerType, ContainerSize, calculate_demurrage
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
+from models import ContainerType, ContainerSize, DemurrageRequest, DemurrageResponse, ChargeBreakdown
+from demurrage_calculator import calculate_demurrage
 
 app = FastAPI(title="Demurrage Calculator API")
 
-class DemurrageRequest(BaseModel):
-    container_type: ContainerType
-    container_size: ContainerSize
-    days: int
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-class ChargeBreakdown(BaseModel):
-    days: int
-    rate: float
-    subtotal: float
+# Serve index.html at root path
+@app.get("/")
+async def read_root():
+    return FileResponse('index.html')
 
-class DemurrageResponse(BaseModel):
-    total_charge: float
-    breakdown: List[ChargeBreakdown]
-
+# Mount static files directory if it exists
+if os.path.exists('static'):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.post("/calculate-demurrage", response_model=DemurrageResponse)
 async def calculate_demurrage_charge(request: DemurrageRequest):
     if request.days < 0:
         raise HTTPException(status_code=400, detail="Days cannot be negative")
     
-    total, breakdown = calculate_demurrage(
+    total_charge, breakdown_dict = calculate_demurrage(
         request.container_type,
         request.container_size,
         request.days
     )
     
-    charge_breakdown = [
+    breakdown = [
         ChargeBreakdown(
+            period_name=period_name,
             days=details['days'],
             rate=details['rate'],
-            subtotal=details['charge']
+            charge=details['charge']
         )
-        for details in breakdown.values()
+        for period_name, details in breakdown_dict.items()
     ]
     
     return DemurrageResponse(
-        total_charge=total,
-        breakdown=charge_breakdown
+        total_charge=total_charge,
+        breakdown=breakdown
     )
 
