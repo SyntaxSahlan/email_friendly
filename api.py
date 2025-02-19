@@ -5,9 +5,11 @@ from fastapi.responses import FileResponse
 import os
 from models import ContainerType, ContainerSize, DemurrageRequest, DemurrageResponse, ChargeBreakdown
 from demurrage_calculator import calculate_demurrage
-
 app = FastAPI(title="Demurrage Calculator API")
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -50,3 +52,6 @@ async def calculate_demurrage_charge(request: DemurrageRequest):
         breakdown=breakdown
     )
 
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
